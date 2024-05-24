@@ -268,7 +268,7 @@ def process_selection():
 # VOID function of Sending Whatsapp Message
 def whatsapp(name, selected_foods, total_cost, new_balance):
     try:
-        pwk.sendwhatmsg_instantly(f"+919790238973",
+        pwk.sendwhatmsg_instantly(f"+91********",
                                   f"Hi {name}! Your transaction details:\nSelected Foods: {', '.join([f'{food} ({quantity})' for food, quantity in selected_foods.items()])}\nTotal Cost: {total_cost}\nCurrent Balance: {new_balance}",
                                   tab_close=True)
         print("Whatsapp successful")
@@ -286,11 +286,11 @@ def email(rfid_tag, selected_foods, total_cost, current_balance, transaction_tim
         # Email configuration (update with your SMTP server details)
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        smtp_username = "samcharles290@gmail.com"
-        smtp_password = "tcud zgsz mjsk nokp"
+        smtp_username = ""
+        smtp_password = ""
 
         # Sender and recipient email addresses
-        sender_email = "samcharles290@gmail.com"
+        sender_email = ""
 
         # Create a MIME object to represent the email
         message = MIMEMultipart()
