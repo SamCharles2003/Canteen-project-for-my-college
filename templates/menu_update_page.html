@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Menu</title>
+</head>
+<style>
+      body {
+            font-family: "Copperplate", monospace;
+            font-weight: 400;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #F33A6A;
+            background-size: cover;
+        }
+
+    .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #000;
+    height: 80vh; /* Set a height of 80% of the viewport height */
+    overflow-y: scroll; /* Add scroll if content overflows */
+    width: 80%; /* Set a width of 80% of the parent container */
+    max-height: 500px; /* Set a maximum height */
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.9);
+    background: #FFC0CB;
+    z-index: 10;
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: transform 0.3s ease-in-out;
+}
+
+.image{
+min-width:10vh;
+max-width:200vh;
+min-height:10vh;
+max-height:20vh;
+}
+
+        .display {
+            font-size: 2vw;
+            color:#E30B5C;
+            font-weight: bold;
+            border: 1px solid #ccc;
+            margin-bottom: 5px; /* Add margin between lines */
+        }
+       .button {
+    width: 5vw;
+    height:4vw;
+    padding: 5px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.9);
+    text-align: center;
+    font-size:2vw;
+    background-color: #FFFACD;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+        .button:hover {
+            background-color: #ddd;
+        }
+
+</style>
+<script>
+
+    function updateQuantity(foodName,quantity_value) {
+    if(quantity_value >= 0){
+console.log(foodName, quantity_value);
+    fetch('/updation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ foodName, quantity_value })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('message').textContent = data.message;
+        // Update food quantity in the DOM
+        //location.reload();
+
+        const foodQuantityElement = document.getElementById(`quantity_${foodName}`);
+
+        console.log(quantity_value)
+        if (foodQuantityElement) {
+            foodQuantityElement.textContent = data.new_quantity;
+
+        }
+    });}
+}
+
+
+    function confirmDeletion(foodName) {
+        // Use window.confirm to show a pop-up
+        const userConfirmed = window.confirm(`Are you sure you want to delete ${foodName}?`);
+
+        if (userConfirmed) {
+            deletion(foodName);
+        }
+    }
+
+    function deletion(selected_food) {
+        fetch('/deletion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ selected_food })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Optionally, you can remove the deleted food item from the DOM
+            const foodElement = document.getElementById(`food_${selected_food}`);
+            if (foodElement) {
+                foodElement.remove();
+            }
+        });
+    }
+
+   function menuupdation(update_food_name, update_food_cost, update_food_quantity, update_food_type, update_food_image) {
+    if (update_food_name && update_food_cost && update_food_quantity) {
+        const formData = new FormData();
+        formData.append('update_food_name', update_food_name);
+        formData.append('update_food_cost', update_food_cost);
+        formData.append('update_food_quantity', update_food_quantity);
+        formData.append('update_food_type', update_food_type);
+        formData.append('update_food_image', update_food_image);
+
+        const userConfirmed = window.confirm(`Are you sure to update the menu?`);
+        if (userConfirmed) {
+            fetch('/menuupdation', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => { document.getElementById('message').textContent = data.message; location.reload(); });
+        }
+    } else {
+        window.alert('Fill All the parts');
+    }
+}function menuupdation(update_food_name, update_food_cost, update_food_quantity, update_food_type, update_food_image) {
+    if (update_food_name && update_food_cost && update_food_quantity) {
+        const formData = new FormData();
+        formData.append('update_food_name', update_food_name);
+        formData.append('update_food_cost', update_food_cost);
+        formData.append('update_food_quantity', update_food_quantity);
+        formData.append('update_food_type', update_food_type);
+        formData.append('update_food_image', update_food_image);
+
+        const userConfirmed = window.confirm(`Are you sure to update the menu?`);
+        if (userConfirmed) {
+            fetch('/menuupdation', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => { document.getElementById('message').textContent = data.message; location.reload(); });
+        }
+    } else {
+        window.alert('Fill All the parts');
+    }
+}
+
+
+</script>
+
+
+<body>
+
+<h1>Menu Updation</h1>
+
+<div class="container">
+        <div id="message"></div>
+
+        <!-- Food Menu -->
+        {% for food_name in food_menu %}
+            <p class="display" id="food_{{ food_name.food_name }}">
+                {{ food_name.food_name }} - ₹{{ food_name.food_cost }} ==>  ✔<span id="quantity_{{ food_name.food_name }}">{{ food_name.food_quantity }} Remaining </span>
+                <input type="number" id="quantity_value_{{ food_name.food_name }}" placeholder="Food Quantity ">
+                <button class="button" onclick="updateQuantity('{{ food_name.food_name }}',document.getElementById('quantity_value_{{ food_name.food_name }}').value)">+</button>
+                <button class="button" onclick="confirmDeletion('{{ food_name.food_name }}')">🗑</button>
+             {% if food_name.food_image %}
+            <img class="image" src="data:image/png;base64,{{ food_name.food_image }}" alt="{{ food_name.food_name }}">
+
+        {% endif %}
+    </p>
+
+        {% endfor %}
+
+<div>
+     <input type="text" id="update_food_name" placeholder="Food Name ">
+        <input type="number" id="update_food_cost" placeholder="Food Cost ">
+      <input type="number" id="update_food_quantity" placeholder="Food Quantity ">
+
+    <select id="update_food_type" >
+    <option value="VEG">VEG</option>
+    <option value="NON-VEG">NON-VEG</option>
+    <option value="MILKSHAKES & BEVARAGES">MILKSHAKES & BEVARAGES</option>
+    <option value="DESSERTS & PASTRIES">DESSERTS & PASTRIES</option>
+    <option value="STATIONERIES">STATIONERIES</option>
+    <option value="MINI BITES & CHOCOLATES">MINI BITES & CHOCOLATES</option>
+</select>
+
+    <input type="file" id="update_food_image" accept="image/*">
+
+ <button class="button" onclick="menuupdation(
+    document.getElementById('update_food_name').value,
+    document.getElementById('update_food_cost').value,
+    document.getElementById('update_food_quantity').value,
+    document.getElementById('update_food_type').value,
+    document.getElementById('update_food_image').files[0]
+)">+</button>
+
+</div>
+</div>
+</body>
+</html>

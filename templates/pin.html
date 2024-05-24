@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIN Entry</title>
+    <style>
+         body {
+            font-family: "Copperplate", monospace;
+            font-weight: 400;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #DC143C;/* Replace 'bg.jpg' with the path to your background image */
+            background-size: cover; /* Adjust the size value as needed */
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #000;
+            min-height: 350px;
+            width: 80%;
+            max-width: 400px;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.9);
+            background: #FFD700;
+            z-index: 10;
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: transform 0.3s ease-in-out; /* Animation */
+        }
+
+        .numpad-container {
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .display-container {
+            margin-bottom: 10px;
+            font-family: Arial, Helvetica, sans-serif;
+}
+
+
+        .display {
+            font-size: 50px;
+             color: red;
+        }
+
+
+
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            font-family: Arial, Helvetica, sans-serif;
+            gap: 10px;
+        }
+
+        .fail_message{
+
+         font-size: 30px; color: red;
+        }
+        .success_message{
+        font-size: 24px; color: green;
+        }
+
+
+        .button {
+            width: 100px;
+            height: 50px;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.9);
+            text-align: center;
+            font-size: 20px;
+            background-color:#FFFACD;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+
+        .button:hover {
+            background-color: #ddd;
+        }
+
+        .ok-button {
+            background-color: #0f0;
+            color: #fff;
+        }
+         .cancel-button{
+          background-color: yellow;
+            color: black;
+         }
+
+
+        .backspace-button {
+            background-color: #f00;
+            color: #fff;
+        }
+    </style>
+    <script>
+        function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    // Use the function to get the RFID data from the URL
+    var rfidData = getParameterByName('rfid_data');
+    if (rfidData) {
+        rfidData = JSON.parse(rfidData);
+        console.log('RFID Data in pin.html:', rfidData);
+
+    }
+
+        let enteredPIN = '';
+
+        function updatePIN(inputNumber) {
+            //document.getElementById('display').textContent = 'Enter Your Pin...';
+            // Limit the PIN length to, for example, 4 digits
+            if (enteredPIN.length === 4) {
+                validatePin(enteredPIN);
+            } else {
+                enteredPIN += inputNumber;
+                updatePinDisplay();
+            }
+        }
+
+        function clearPIN() {
+            enteredPIN = '';
+            updatePinDisplay();
+        }
+
+        function updatePinDisplay() {
+            const pinDisplay = document.getElementById('pin-display');
+            pinDisplay.textContent = enteredPIN.length ? '*'.repeat(enteredPIN.length) : '';
+        }
+
+       function validatePin(user_pin_code) {
+    try {
+        if (rfidData && rfidData.rfid_tag) {
+            fetch('/pin_code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_pin_code: user_pin_code, rfid_tag: rfidData.rfid_tag })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message && data.message === 'Authenticated') {
+                          document.getElementById('success_message').textContent = 'Successfull!';
+
+                          window.location.href = '/details?rfid_data=' + encodeURIComponent(JSON.stringify(rfidData))+ '&selected_foods=' + getParameterByName('selected_foods'); // Redirect to details.html
+                    } else {
+                        document.getElementById('fail_message').textContent = 'Wrong Pincode!';
+                        enteredPIN = '';
+                        setTimeout(function () {
+                            updatePIN(0); // Pass a default value to updatePIN
+                        }, 1000);
+                    }
+                });
+        } else {
+            console.error('No valid RFID data received.');
+            document.getElementById('display').textContent = 'No valid RFID data received.';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('display').textContent = 'Error validating PIN.';
+    }
+}
+    </script>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Enter Your RFID PIN Code</h1>
+    <div class="display" id="pin-display"></div>
+    <div class="numpad-container">
+        <div class="message" id="message"></div>
+            <div class="display-container">
+                <div class="success_message" id="success_message"></div>
+                <div class="fail_message" id="fail_message"></div>
+                <div class="display" id="display"></div>
+            </div>
+
+            <div class="numpad" id="numpad">
+
+    <!-- Keypad buttons -->
+
+        <button class="button" onclick="updatePIN(1)">1</button>
+        <button class="button" onclick="updatePIN(2)">2</button>
+        <button class="button" onclick="updatePIN(3)">3</button>
+        <button class="button" onclick="updatePIN(4)">4</button>
+        <button class="button" onclick="updatePIN(5)">5</button>
+        <button class="button" onclick="updatePIN(6)">6</button>
+        <button class="button" onclick="updatePIN(7)">7</button>
+        <button class="button" onclick="updatePIN(8)">8</button>
+        <button class="button" onclick="updatePIN(9)">9</button>
+
+                <button class="button" onclick="updatePIN(0)">0</button>
+            </div>
+ <div class="numpad" id="numpad">
+
+
+        <button class="button cancel-button" onclick="window.location.href = '/'">Cancel</button>
+        <button class="button ok-button" id="ok-button" onclick="validatePin(enteredPIN)">OK</button>
+       <button class="button backspace-button" onclick="clearPIN()">Clear</button>
+
+
+           </div>
+
+    </div>
+</div> </body>
+
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+body {
+    font-family: "Open Sans", sans-serif;
+}
+
+form {
+            max-width: 300px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 1px solid #ccc;
+    border-radius: .1875rem;
+    box-sizing: border-box;
+    display: block;
+    font-size: .875rem;
+    margin-bottom: 1rem;
+    padding: .275rem;
+    width: 100%;
+}
+
+input[type="password"] {
+    margin-bottom: .5rem;
+}
+
+input[type="submit"] {
+    background-color: #015294;
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    padding: .5rem 1rem;
+    cursor: pointer;
+}
+
+label {
+    color: #666;
+    font-size: .875rem;
+}
+
+h5 {
+    margin-bottom: 0.5rem;
+}
+
+a {
+    color: #015294;
+    text-decoration: none;
+}
+        .error-message {
+    color: red;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+    </style>
+</head>
+
+<body>
+   <form id="signupForm" onsubmit="return signupUser();">
+    <label for="firstName">Name</label>
+    <input type="text" id="firstName" autocomplete="name" required >
+
+    <label for="email">Email</label>
+    <input type="email" id="email" autocomplete="email" required >
+
+    <label for="password">Password</label>
+    <input type="password" id="password" autocomplete="new-password" required>
+
+    <label for="phoneNumber">Phone Number</label>
+    <input type="tel" id="phoneNumber" autocomplete="tel-national" required >
+
+       <div>
+        <input id="otp" placeholder="Enter Your OTP">
+        <button id="get_otp" onclick="getotp()">Get Otp</button>
+       </div>
+
+    <label for="userType">User Type</label>
+    <select id="userType">
+        <option value="STUDENTS">STAFF</option>
+    </select>
+<span id="Error" class="error-message"></span>
+    <input type="submit" value="Sign Up" onclick="signupUser()">
+</form>
+
+
+    <script>
+function signupUser() {
+            const firstName = document.getElementById('firstName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const userType = document.getElementById('userType').value;
+            const otp = document.getElementById('otp').value
+
+if (firstName != "" && email != "" && password !=  ""  && phoneNumber != ""){
+            fetch('/signupdata', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    firstName: firstName,
+                    email: email,
+                    password: password,
+                    phoneNumber: phoneNumber,
+                    userType: userType,
+                    otp: otp
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the signup response data
+                    console.log(data);
+                    if (data.message == 'success') {
+                       window.location.href = '/';
+                    } else if (data.message == 'error') {
+                        document.getElementById('Error').textContent = data.error;
+                    } else {
+                        // Handle other cases, if needed
+                        console.log('Unexpected response:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    // Handle errors here, for example, display an error message to the user
+                });
+                return false;
+        }
+        else 
+        {document.getElementById('Error').textContent = "Required forms cannot be empty!";}
+        
+    }
+        function getotp()
+        {
+         const email = document.getElementById('email').value;
+
+        if (email != "" ){
+            fetch('/signup_otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the signup response data
+                    console.log(data);
+                    if (data.message == 'success') {
+                      document.getElementById('Error').textcontent="OTP Was sent to {{email}}";
+                    }  else {
+                         document.getElementById('Error').textcontent=data.message;
+                        console.log('Unexpected response:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    // Handle errors here, for example, display an error message to the user
+                });
+                return false;
+        }
+        else
+        {document.getElementById('Error').textContent = "OTP cannot Be empty!";}
+    }
+
+    </script>
+</body>
+
+</html>
+</title>
+</head>
+<body>
+
+</body>
+</html>

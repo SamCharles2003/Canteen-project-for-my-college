@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recharge</title>
+
+    <style>
+
+    </style>
+
+    <script>
+        async function proceedTransaction()
+      {
+    document.getElementById('message').textContent = 'Place Your ID card on the Reader';
+
+    try {
+        const data = await getRFIDData();
+        console.log('RFID Data:', data);
+
+        if (data.message && data.message === 'registered') {
+            document.getElementById('message').textContent = 'Successful!';
+
+        }
+         else if (data.message && data.message === 'not registered') {
+            document.getElementById('message').textContent = 'Register your card!';
+            setTimeout(() => {
+                console.log('Timeout expired');
+                window.location.href = '/recharge_page';
+            }, 3000);
+        }
+        else if (data.message && data.message === 'no data')
+        document.getElementById('message').textContent = 'No data Received!';
+    }
+
+    catch (error)
+    {
+        console.error('Error:', error);
+        document.getElementById('message').textContent = 'Error reading RFID data.';
+    }
+}
+ async function getRFIDData() {
+        const response = await fetch(`/read_com_port`);
+        return await response.json();
+    }
+
+        function recharge()
+        {
+           
+
+        }
+
+    </script>
+
+
+
+</head>
+
+<body>
+    <h1>Recharge</h1>
+
+<select id="amount" >
+    <option value="50">50</option>
+    <option value="100">100</option>
+    <option value="500">50</option>
+</select>
+
+ <button onclick="proceedTransaction()">Read My Card</button>
+ <p id="message" ></p>
+
+    <input placeholder="Enter OTP here">
+<button onclick="getotp()">Get Otp</button>
+<button onclick="recharge()">Recharge Now</button>
+
+</body>
+
+</html>

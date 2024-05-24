@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Staff Dashboard</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      width: 100%;
+    }
+
+    header {
+      background-color: #009688;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      max-height:50px;
+
+    }
+
+    nav {
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      text-align: center;
+    }
+
+    section {
+      padding: 20px;
+      text-align: center;
+    }
+
+    footer {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        text-align: center;
+      }
+    }
+    .bar1, .bar2, .bar3 {
+  width: 35px;
+  height: 5px;
+  background-color: #333;
+  margin: 6px 0;
+  transition: 0.4s;
+}
+
+.change .bar1 {
+  transform: translate(0, 11px) rotate(-45deg);
+}
+
+.change .bar2 {opacity: 0;}
+
+.change .bar3 {
+  transform: translate(0, -11px) rotate(45deg);
+}
+    .lines_container {
+  display: inline-block;
+  cursor: pointer;
+  justify-content:left;
+  padding:10px;
+}
+    .sidenav {
+  height: 100%; /* 100% Full-height */
+  width: 0; /* 0 width - change this with JavaScript */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Stay on top */
+  top: 0; /* Stay at the top */
+  left: 0;
+  background-color: #111; /* Black*/
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 60px; /* Place content 60px from the top */
+  transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+}
+
+/* The navigation menu links */
+.sidenav a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+/* When you mouse over the navigation links, change their color */
+.sidenav a:hover {
+  color: #f1f1f1;
+}
+
+/* Position and style the close button (top right corner) */
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+/* Style page content - use this if you want to push the page content to the right when you open the side navigation */
+.main {
+  transition: margin-left .5s;
+  padding: 20px;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+  .searchsidenav {padding-top: 15px;}
+  .searchsidenav a {font-size: 18px;}
+}
+
+
+.searchsidenav {
+  height: 100%; /* 100% Full-height */
+  width: 0; /* 0 width - change this with JavaScript */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Stay on top */
+  top: 0; /* Stay at the top */
+  left: 0;
+  background-color: #111; /* Black*/
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 60px; /* Place content 60px from the top */
+  transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+}
+
+/* The navigation menu links */
+.searchsidenav a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+/* When you mouse over the navigation links, change their color */
+.searchsidenav a:hover {
+  color: #f1f1f1;
+}
+
+/* Position and style the close button (top right corner) */
+.searchsidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+/* Style page content - use this if you want to push the page content to the right when you open the side navigation */
+.searchmain {
+  transition: margin-left .5s;
+  padding: 20px;
+}
+.sidemain {
+  transition: margin-left .5s;
+  padding: 20px;
+}
+
+
+
+  canvas {
+    border: 2px solid #ddd; /* Add a border around the graph */
+    border-radius: 5px; /* Optional: Add some border-radius for rounded corners */
+    box-shadow: 0 0 20px rgba(255, 182, 193, 0); /* Initial box-shadow is transparent */
+    transition: box-shadow 0.3s ease-in-out; /* Add transition for smooth effect */
+     box-shadow: 0 0 20px rgba(255, 182, 193, 1);
+  }
+
+
+canvas:hover {
+    transform: translateY(-5px);
+   transition: transform 0.3s ease-in-out;
+}
+  </style>
+
+  <script>
+
+
+    let currentMode = null;
+
+    function searchee(mode) {
+        const modeElement = document.getElementById(mode);
+
+        if (modeElement.style.backgroundColor === 'green') {
+            // If the current mode is clicked again, reset everything
+            modeElement.style.backgroundColor = null;
+            currentMode = null;
+        } else {
+            // Set the background color of the clicked mode to green
+            modeElement.style.backgroundColor = 'green';
+            const searchterm = document.getElementById('search-bar').value;
+
+            fetch('/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: mode, searchterm: searchterm })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'success') {
+                    // Redirect to the home page or handle success as needed
+                    document.getElementById('results').textContent = data.results;
+                } else {
+                    // Handle other cases, e.g., display an error message
+                    if (data.error) {
+                        document.getElementById('results').textContent = data.results;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                // Handle errors here, for example, display a generic error message
+                document.getElementById('results').textContent = 'An error occurred while processing your request.';
+            });
+
+            // Reset the previous mode if any
+            if (currentMode && currentMode !== mode) {
+                document.getElementById(currentMode).style.backgroundColor = null;
+            }
+
+            // Set the current mode
+            currentMode = mode;
+        }
+    }
+
+
+
+
+
+    function searchnavopen() {
+      document.getElementById("mysearchnav").style.width = "50vh";
+      document.getElementById("searchmain").style.marginLeft = "250px";
+      document.body.style.backgroundColor = "rgba(0,0,0,0.4)";
+    }
+
+    function searchnavclose() {
+      document.getElementById("mysearchnav").style.width = "0";
+      document.getElementById("searchmain").style.marginLeft = "0";
+      document.body.style.backgroundColor = "white";
+
+    }
+
+    function openNav() {
+      document.getElementById("mySidenav").style.width = "50vh";
+      document.getElementById("sidemain").style.marginLeft = "250px";
+      document.body.style.backgroundColor = "rgba(0,0,0,0.4)";
+    }
+
+/* Set the width of the side navigation to 0 and the left margin of the page content to 0, and the background color of body to white */
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
+  document.getElementById("sidemain").style.marginLeft = "0";
+  document.body.style.backgroundColor = "white";
+}
+    // Check if transaction_graph_value is defined and has date and total_transaction properties
+    const transaction_labels = {{ transaction_graph_value | default([]) | tojson }};
+    const transaction_data = {
+      labels: transaction_labels.map(entry => entry.date),
+      datasets: [{
+        label: 'Regular Transaction tracking',
+        backgroundColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: transaction_labels.map(entry => entry.total_transaction),
+      }]
+    };
+
+    const transaction_config = {
+      type: 'line',
+      data: transaction_data,
+      options: { maintainAspectRatio: false }
+    };
+
+    const menu_labels = {{ menu_graph_value | default([]) | tojson }};
+    const menu_data = {
+      labels: menu_labels.map(entry => entry.food_name),
+      datasets: [{
+        label: 'Food Sale Tracking',
+        backgroundColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: menu_labels.map(entry => entry.sell_quantity),
+      }]
+    };
+
+    const menu_config = {
+      type: 'bar',
+      data: menu_data,
+      options: { maintainAspectRatio: false }
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const transaction_ctx = document.getElementById('myChart').getContext('2d');
+      const transaction_chart = new Chart(transaction_ctx, transaction_config);
+
+      const menu_ctx = document.getElementById('myChart_menu').getContext('2d');
+      const menu_chart = new Chart(menu_ctx, menu_config);
+    });
+    function myFunction(x) {
+  x.classList.toggle("change");
+}
+
+
+
+
+  </script>
+</head>
+
+<body>
+
+
+
+
+  <header>
+
+
+    <div class="line_container" onclick="openNav()">
+  <div class="bar1"></div>
+  <div class="bar2"></div>
+  <div class="bar3"></div>
+
+
+
+</div>
+<div style="justify-content:center;font-size:200%;padding:1px; ">Canteen Analytics</div>
+      <div  style="justify-content:center;text-align:right;font-size:200%;" onclick="searchnavopen()"> 🔍 </div>
+
+
+
+  </header>
+
+  <nav>
+    <ul>
+      <div style="display: flex; justify-content: space-between; padding: 10px;">
+        <div style="text-align: left;">
+          <h2 style="font-size: 18px;">Estimated Debit Balance: ₹ {{debit_balance_value}}</h2>
+        </div>
+        <div style="text-align: right;">
+          <h2 style="font-size: 18px;">Estimated Today's Credition: ₹ {{current_transaction_value}}</h2>
+        </div>
+      </div>
+    </ul>
+  </nav>
+
+  <section>
+    <!-- Dashboard content goes here -->
+    <div style="display: flex; justify-content: center;">
+      <div>
+        <h2 style="font-size: 24px; font-weight: bold;">Welcome {{name}}</h2>
+      </div>
+    </div>
+
+    <div style="height: 50vh; width: auto; margin: 0 auto;">
+      <canvas id="myChart"></canvas>
+    </div>
+
+    <div style="height: 50vh; width: auto; margin: 20px auto;">
+      <canvas id="myChart_menu"></canvas>
+    </div>
+
+    <p>Thank me later!.</p>
+  </section>
+
+
+  <footer>
+    Sam Charles &copy;
+  </footer>
+
+
+<div id="mySidenav" class="sidenav">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+  <a href="/live_transaction">Monitor Live Transactions</a>
+  <a href="/menu_update">Menu Updation</a>
+  <a href="#">Clients</a>
+  <a href="#">Contact</a>
+  <a style="font-size: large; text-align: center;">Logged in as {{name}}</a>
+  <a style="font-size: medium; text-align: center;" href="/logout">Logout</a>
+</div>
+
+
+
+</body>
+
+</html>

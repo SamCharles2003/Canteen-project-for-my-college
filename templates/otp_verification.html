@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <style>
+        body {
+            font-family: "Open Sans", sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+            align-items: center;
+        }
+
+        form {
+            max-width: 300px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            color: #333;
+            font-size: 0.875rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        input {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            display: block;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            width: 100%;
+        }
+
+        input[type="text"] {
+            padding-left: 40px; /* Adjust the padding to leave space for icons */
+        }
+
+        input[type="text"] {
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            background-size: 20px;
+        }
+
+        input[type="submit"] {
+            background-color: #015294;
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form id="otpVerificationForm" onsubmit="return verifyotp();" >
+        <label for="otp">Enter OTP</label>
+        <input type="text" id="otp" autocomplete="off" required>
+        <span id="otpError" class="error-message"></span>
+        <button onclick="verifyotp()">Verify</button>
+    </form>
+
+    <script>
+
+
+      function verifyotp(){
+        const enteredOTP = document.getElementById('otp').value;
+            fetch('/verify_otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otp: enteredOTP })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'success') {
+                        // Redirect to a success page or perform desired action
+                        window.location.href = '/update_password';
+                    }
+                    else if (data.message === 'timeout') {
+                        window.location.href = '/timeout';
+
+                    }
+                    else
+                    {document.getElementById('otpError').textContent ="Invalid OTP";
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    alert('An error occurred while verifying OTP');
+                });
+                return false;
+        }
+
+    </script>
+</body>
+
+</html>

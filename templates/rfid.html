@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID Reading</title>
+    <style>
+    body {
+        font-family: "Copperplate", monospace;
+        font-weight: 400;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #DC143C;
+        background-size: cover;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #000;
+        min-height: 350px;
+        width: 80%;
+        max-width: 400px;
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.9);
+        background: #FFD700;
+        z-index: 10;
+        backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: transform 0.3s ease-in-out;
+    }
+
+      .ok-button {
+        position: fixed;
+        top:300px;
+        right:120px;
+        width: 200px;
+        height: 50px;
+        padding: 10px;
+        border-radius: 20px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.9);
+        text-align: center;
+        font-size: 20px;
+        background-color: green;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .cancel-button {
+       position: fixed;
+        top:450px;
+        right:170px;
+        width: 100px;
+        height: 50px;
+        padding: 10px;
+        border-radius: 20px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.9);
+        text-align: center;
+        font-size: 20px;
+        background-color: yellow;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        color: black;
+    }
+.fail_message{
+
+         font-size: 30px; color: red;
+        }
+    .ok-button:hover,
+    .cancel-button:hover {
+        background-color: #ddd;
+    }
+</style>
+    <script>
+          function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+      async function proceedTransaction() {
+    document.getElementById('message').textContent = 'Place Your ID card on the Reader';
+
+    try {
+        const data = await getRFIDData();
+        console.log('RFID Data:', data);
+
+        if (data.message && data.message === 'registered') {
+            document.getElementById('message').textContent = 'Successful!';
+            setTimeout(() => {
+                console.log('Timeout expired');
+                // Reload the page every 5 seconds
+                window.location.href = '/pin?rfid_data=' + encodeURIComponent(JSON.stringify(data)) + '&selected_foods=' + getParameterByName('selected_foods');
+            }, 2000);
+        } else if (data.message && data.message === 'not registered') {
+            document.getElementById('message').textContent = 'Register your card!';
+            setTimeout(() => {
+                console.log('Timeout expired');
+                window.location.href = '/';
+            }, 3000);
+        }
+        else if (data.message && data.message === 'no data')
+        document.getElementById('message').textContent = 'No data Received!';
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('message').textContent = 'Error reading RFID data.';
+    }
+}
+
+
+        async function getRFIDData() {
+        const selectedFoods= getParameterByName('selected_foods')
+        const response = await fetch(`/read_com_port?selected_foods=${encodeURIComponent(selectedFoods)}`);
+        return await response.json();
+    }
+    </script>
+</head>
+
+<body>
+
+   <div class="container">
+    <h1>RFID Reading</h1>
+
+    <div    class= "fail_message" id="message"></div>
+    <button class="cancel-button" onclick="window.location.href = '/'">Cancel</button>
+    <button class="ok-button"    onclick=" proceedTransaction()">Read My Card</button>
+   </div>
+
+</body>
+
+</html>
